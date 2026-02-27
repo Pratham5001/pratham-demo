@@ -1,3 +1,0 @@
-# pratham-demo
-hi yug
-
