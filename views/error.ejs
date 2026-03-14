@@ -1,0 +1,10 @@
+<%- include('partials/header', {title: 'Error'}) %>
+<div style="min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px">
+  <div>
+    <div style="font-size:5rem">😕</div>
+    <h2 style="font-family:'Playfair Display',serif;margin:20px 0">Oops!</h2>
+    <p style="color:var(--text-muted);font-size:1.1rem;max-width:400px;margin:0 auto 24px"><%= message || 'Something went wrong' %></p>
+    <a href="/" class="btn-primary-custom">Go Home</a>
+  </div>
+</div>
+<%- include('partials/footer') %>

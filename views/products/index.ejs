@@ -1,0 +1,125 @@
+<%- include('../partials/header', {title: 'Browse Products'}) %>
+
+<div style="background:var(--cream-dark);padding:20px 0">
+  <div class="container">
+    <form action="/products" method="GET" class="d-flex gap-2 flex-wrap align-items-center">
+      <div class="search-hero" style="max-width:400px;flex:1">
+        <input type="text" name="search" value="<%= query.search || '' %>" placeholder="Search products...">
+        <button type="submit"><i class="fas fa-search"></i></button>
+      </div>
+      <select name="category" class="form-control-custom" style="width:auto" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        <% categories.forEach(cat => { %>
+        <option value="<%= cat.slug %>" <%= query.category === cat.slug ? 'selected' : '' %>><%= cat.icon %> <%= cat.name %></option>
+        <% }) %>
+      </select>
+      <select name="sort" class="form-control-custom" style="width:auto" onchange="this.form.submit()">
+        <option value="">Latest First</option>
+        <option value="price_asc" <%= query.sort === 'price_asc' ? 'selected' : '' %>>Price: Low to High</option>
+        <option value="price_desc" <%= query.sort === 'price_desc' ? 'selected' : '' %>>Price: High to Low</option>
+        <option value="rating" <%= query.sort === 'rating' ? 'selected' : '' %>>Top Rated</option>
+      </select>
+    </form>
+  </div>
+</div>
+
+<div class="section-padding">
+  <div class="container">
+    <div class="row g-4">
+      <!-- FILTER SIDEBAR -->
+      <div class="col-lg-3">
+        <div class="filter-sidebar">
+          <h5 class="section-title mb-4" style="font-size:1.3rem">Filters</h5>
+
+          <div class="filter-title">Category</div>
+          <div class="d-flex flex-column gap-1 mb-4">
+            <a href="/products?<%= new URLSearchParams({...query, category: ''}).toString() %>"
+               class="py-1 px-2 rounded <%= !query.category ? 'fw-700' : '' %>"
+               style="text-decoration:none;color:var(--text);font-size:0.9rem;transition:all 0.15s"
+               onmouseover="this.style.background='var(--cream-dark)'" onmouseout="this.style.background=''">
+              All Categories
+            </a>
+            <% categories.forEach(cat => { %>
+            <a href="/products?<%= new URLSearchParams({...query, category: cat.slug}).toString() %>"
+               class="py-1 px-2 rounded <%= query.category === cat.slug ? 'fw-bold' : '' %>"
+               style="text-decoration:none;color:<%= query.category === cat.slug ? 'var(--primary)' : 'var(--text)' %>;font-size:0.9rem">
+              <%= cat.icon %> <%= cat.name %>
+            </a>
+            <% }) %>
+          </div>
+
+          <div class="filter-title">Condition</div>
+          <div class="d-flex flex-column gap-1 mb-4">
+            <% ['New', 'Like New', 'Good', 'Fair', 'Poor'].forEach(cond => { %>
+            <a href="/products?<%= new URLSearchParams({...query, condition: cond}).toString() %>"
+               style="text-decoration:none;color:<%= query.condition === cond ? 'var(--primary)' : 'var(--text)' %>;font-size:0.9rem;padding:4px 8px;border-radius:6px">
+              <%= cond %>
+            </a>
+            <% }) %>
+          </div>
+
+          <div class="filter-title">Price Range</div>
+          <form action="/products" method="GET">
+            <% Object.entries(query).forEach(([k,v]) => { if(k !== 'minPrice' && k !== 'maxPrice') { %><input type="hidden" name="<%= k %>" value="<%= v %>"><% } }) %>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="number" name="minPrice" value="<%= query.minPrice || '' %>" placeholder="Min ₹" class="form-control-custom" style="padding:8px 10px">
+              <span>–</span>
+              <input type="number" name="maxPrice" value="<%= query.maxPrice || '' %>" placeholder="Max ₹" class="form-control-custom" style="padding:8px 10px">
+            </div>
+            <button type="submit" class="btn-primary-custom w-100 mt-2" style="padding:10px;font-size:0.85rem">Apply</button>
+          </form>
+
+          <% if (Object.keys(query).some(k => query[k])) { %>
+          <a href="/products" class="btn-outline-primary-custom w-100 mt-3 text-center" style="padding:10px;font-size:0.85rem">
+            <i class="fas fa-times me-1"></i>Clear Filters
+          </a>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="section-title" style="font-size:1.5rem">
+              <%= query.search ? '"' + query.search + '"' : (query.category || 'All Items') %>
+            </h2>
+            <p style="color:var(--text-muted);margin-top:4px;font-size:0.9rem"><%= total %> items found</p>
+          </div>
+        </div>
+
+        <% if (products.length > 0) { %>
+        <div class="products-grid">
+          <% products.forEach(product => { %>
+            <%- include('../partials/product-card', { product, wishlistIds }) %>
+          <% }) %>
+        </div>
+
+        <!-- PAGINATION -->
+        <% if (totalPages > 1) { %>
+        <nav class="d-flex justify-content-center mt-5">
+          <div class="d-flex gap-2">
+            <% for(let p = 1; p <= totalPages; p++) { %>
+            <a href="/products?<%= new URLSearchParams({...query, page: p}).toString() %>"
+               style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-weight:600;background:<%= p === currentPage ? 'var(--primary)' : 'var(--white)' %>;color:<%= p === currentPage ? 'white' : 'var(--text)' %>;box-shadow:var(--card-shadow)">
+              <%= p %>
+            </a>
+            <% } %>
+          </div>
+        </nav>
+        <% } %>
+
+        <% } else { %>
+        <div class="text-center py-5">
+          <div style="font-size:4rem">🔍</div>
+          <h4 style="color:var(--text-muted);margin-top:16px">No products found</h4>
+          <p style="color:var(--text-muted)">Try different search terms or filters</p>
+          <a href="/products" class="btn-primary-custom mt-3" style="margin-top:16px">Browse All</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

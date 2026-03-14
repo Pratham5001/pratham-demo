@@ -1,0 +1,42 @@
+<%- include('../partials/header', {title: 'My Orders'}) %>
+
+<div class="section-padding">
+  <div class="container">
+    <h2 class="section-title mb-4">My Orders</h2>
+    <% if (orders.length === 0) { %>
+    <div style="text-align:center;padding:60px">
+      <div style="font-size:4rem">📦</div>
+      <h4 style="color:var(--text-muted);margin-top:16px">No orders yet</h4>
+      <a href="/products" class="btn-primary-custom mt-3" style="margin-top:16px">Start Shopping</a>
+    </div>
+    <% } else { %>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <% orders.forEach(order => { %>
+      <div style="background:var(--white);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--card-shadow)">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+          <div>
+            <div style="font-weight:700;color:var(--primary)"><%= order.orderNumber %></div>
+            <div style="font-size:0.82rem;color:var(--text-muted)"><%= new Date(order.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'}) %></div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="status-badge status-<%= order.orderStatus %>"><%= order.orderStatus %></span>
+            <span style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--primary)">₹<%= order.totalPrice.toLocaleString() %></span>
+          </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap mb-3">
+          <% order.items.slice(0,3).forEach(item => { %>
+          <img src="<%= item.image %>" style="width:50px;height:50px;border-radius:8px;object-fit:cover" title="<%= item.title %>">
+          <% }) %>
+          <% if (order.items.length > 3) { %>
+          <div style="width:50px;height:50px;border-radius:8px;background:var(--cream-dark);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--text-muted)">+<%= order.items.length - 3 %></div>
+          <% } %>
+        </div>
+        <a href="/orders/<%= order._id %>" class="btn-outline-primary-custom" style="padding:8px 20px;font-size:0.85rem">View Details</a>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

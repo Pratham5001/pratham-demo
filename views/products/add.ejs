@@ -1,0 +1,124 @@
+<%- include('../partials/header', {title: 'Sell an Item'}) %>
+
+<div class="section-padding">
+  <div class="container" style="max-width:700px">
+    <h2 class="section-title mb-4">List an Item for Sale</h2>
+
+    <% if (error) { %><div class="alert-custom alert-error"><i class="fas fa-exclamation-circle me-2"></i><%= error %></div><% } %>
+
+    <div class="form-container">
+      <form action="/products/add" method="POST" enctype="multipart/form-data">
+
+        <div class="form-group">
+          <label class="form-label">Product Photos <span style="color:var(--danger)">*</span></label>
+          <div style="border:2px dashed var(--cream-dark);border-radius:var(--radius);padding:30px;text-align:center;cursor:pointer;transition:border-color 0.2s" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color:var(--text-muted)"></i>
+            <p style="color:var(--text-muted);margin:0">Click to upload or drag & drop</p>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">Max 5 images, 5MB each (JPG, PNG)</p>
+            <input type="file" name="images" multiple accept="image/*" id="imageInput" style="display:none" onchange="previewImages(this)">
+          </div>
+          <div id="previewGrid" class="img-preview-grid"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Title <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="title" class="form-control-custom" placeholder="e.g. Blue Denim Jacket by Levi's" required>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 form-group">
+            <label class="form-label">Price (₹) <span style="color:var(--danger)">*</span></label>
+            <input type="number" name="price" class="form-control-custom" placeholder="0" min="0" required>
+          </div>
+          <div class="col-md-6 form-group">
+            <label class="form-label">Category <span style="color:var(--danger)">*</span></label>
+            <select name="category" class="form-control-custom" required>
+              <option value="">Select category...</option>
+              <% categories.forEach(cat => { %>
+              <option value="<%= cat._id %>"><%= cat.icon %> <%= cat.name %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 form-group">
+            <label class="form-label">Condition <span style="color:var(--danger)">*</span></label>
+            <select name="condition" class="form-control-custom" required>
+              <option value="">Select condition...</option>
+              <option>New</option>
+              <option>Like New</option>
+              <option>Good</option>
+              <option>Fair</option>
+              <option>Poor</option>
+            </select>
+          </div>
+          <div class="col-md-3 form-group">
+            <label class="form-label">Size</label>
+            <select name="size" class="form-control-custom">
+              <option value="">N/A</option>
+              <% ['XS','S','M','L','XL','XXL','3XL','Free Size'].forEach(s => { %><option><%= s %></option><% }) %>
+            </select>
+          </div>
+          <div class="col-md-3 form-group">
+            <label class="form-label">Brand</label>
+            <input type="text" name="brand" class="form-control-custom" placeholder="Brand name">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description <span style="color:var(--danger)">*</span></label>
+          <textarea name="description" class="form-control-custom" rows="4" placeholder="Describe the item's details, any flaws, measurements, etc." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tags <span style="font-weight:400;color:var(--text-muted)">(comma separated)</span></label>
+          <input type="text" name="tags" class="form-control-custom" placeholder="vintage, streetwear, summer">
+        </div>
+
+        <div class="d-flex gap-3 justify-content-end">
+          <a href="/products" class="btn-outline-primary-custom">Cancel</a>
+          <button type="submit" class="btn-primary-custom">
+            <i class="fas fa-check me-2"></i>List for Sale
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('uploadArea').addEventListener('click', () => document.getElementById('imageInput').click());
+
+document.getElementById('uploadArea').addEventListener('dragover', e => {
+  e.preventDefault(); e.currentTarget.style.borderColor = 'var(--primary)';
+});
+document.getElementById('uploadArea').addEventListener('dragleave', e => {
+  e.currentTarget.style.borderColor = 'var(--cream-dark)';
+});
+document.getElementById('uploadArea').addEventListener('drop', e => {
+  e.preventDefault();
+  e.currentTarget.style.borderColor = 'var(--cream-dark)';
+  const dt = new DataTransfer();
+  [...e.dataTransfer.files].forEach(f => dt.items.add(f));
+  document.getElementById('imageInput').files = dt.files;
+  previewImages(document.getElementById('imageInput'));
+});
+
+function previewImages(input) {
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = '';
+  [...input.files].slice(0, 5).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'img-preview';
+      grid.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+
+<%- include('../partials/footer') %>

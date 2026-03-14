@@ -1,0 +1,96 @@
+<%- include('../partials/header', {title: 'Edit Product'}) %>
+
+<div class="section-padding">
+  <div class="container" style="max-width:700px">
+    <h2 class="section-title mb-4">Edit Listing</h2>
+    <% if (error) { %><div class="alert-custom alert-error"><%= error %></div><% } %>
+
+    <div class="form-container">
+      <form action="/products/<%= product._id %>/edit" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">Current Images</label>
+          <div class="img-preview-grid mb-2">
+            <% product.images.forEach(img => { %>
+            <img src="<%= img %>" class="img-preview">
+            <% }) %>
+          </div>
+          <label class="form-label">Upload New Images (replaces current)</label>
+          <input type="file" name="images" multiple accept="image/*" class="form-control-custom" onchange="previewImages(this)">
+          <div id="previewGrid" class="img-preview-grid"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" name="title" class="form-control-custom" value="<%= product.title %>" required>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 form-group">
+            <label class="form-label">Price (₹)</label>
+            <input type="number" name="price" class="form-control-custom" value="<%= product.price %>" required>
+          </div>
+          <div class="col-md-6 form-group">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-control-custom" required>
+              <% categories.forEach(cat => { %>
+              <option value="<%= cat._id %>" <%= product.category.toString() === cat._id.toString() ? 'selected' : '' %>><%= cat.icon %> <%= cat.name %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-4 form-group">
+            <label class="form-label">Condition</label>
+            <select name="condition" class="form-control-custom" required>
+              <% ['New','Like New','Good','Fair','Poor'].forEach(c => { %>
+              <option <%= product.condition === c ? 'selected' : '' %>><%= c %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="col-md-4 form-group">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-control-custom">
+              <% ['available','reserved','sold'].forEach(s => { %>
+              <option value="<%= s %>" <%= product.status === s ? 'selected' : '' %>><%= s %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="col-md-4 form-group">
+            <label class="form-label">Size</label>
+            <input type="text" name="size" class="form-control-custom" value="<%= product.size || '' %>">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-control-custom" rows="4" required><%= product.description %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <input type="text" name="tags" class="form-control-custom" value="<%= (product.tags || []).join(', ') %>">
+        </div>
+
+        <div class="d-flex gap-3 justify-content-end">
+          <a href="/products/<%= product._id %>" class="btn-outline-primary-custom">Cancel</a>
+          <button type="submit" class="btn-primary-custom"><i class="fas fa-save me-2"></i>Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function previewImages(input) {
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = '';
+  [...input.files].slice(0,5).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => { const img = document.createElement('img'); img.src = e.target.result; img.className='img-preview'; grid.appendChild(img); };
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+
+<%- include('../partials/footer') %>

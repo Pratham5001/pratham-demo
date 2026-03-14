@@ -1,0 +1,209 @@
+<%- include('../partials/header', {title: product.title}) %>
+
+<div class="section-padding">
+  <div class="container">
+    <!-- BREADCRUMB -->
+    <nav style="margin-bottom:24px;font-size:0.88rem">
+      <a href="/" style="color:var(--text-muted);text-decoration:none">Home</a> /
+      <a href="/products" style="color:var(--text-muted);text-decoration:none">Products</a> /
+      <a href="/products?category=<%= product.category.slug %>" style="color:var(--text-muted);text-decoration:none"><%= product.category.name %></a> /
+      <span style="color:var(--text)"><%= product.title %></span>
+    </nav>
+
+    <div class="row g-5">
+      <!-- IMAGES -->
+      <div class="col-lg-6">
+        <div style="border-radius:var(--radius-lg);overflow:hidden;background:var(--cream-dark);aspect-ratio:1;margin-bottom:12px">
+          <img id="mainImg" src="<%= product.images[0] %>" alt="<%= product.title %>" style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <% if (product.images.length > 1) { %>
+        <div class="d-flex gap-2 flex-wrap">
+          <% product.images.forEach((img, i) => { %>
+          <img src="<%= img %>" onclick="document.getElementById('mainImg').src='<%= img %>'"
+            style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid <%= i===0 ? 'var(--primary)' : 'transparent' %>" class="thumb-img">
+          <% }) %>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- DETAILS -->
+      <div class="col-lg-6">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <span style="background:var(--cream-dark);color:var(--text-muted);padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:500"><%= product.category.name %></span>
+            <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;margin-top:10px"><%= product.title %></h1>
+          </div>
+          <% if (user && (user._id.toString() === product.seller._id.toString() || user.role === 'admin')) { %>
+          <div class="dropdown">
+            <button class="btn" style="border:1px solid var(--cream-dark);border-radius:8px" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/products/<%= product._id %>/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>
+              <li><a class="dropdown-item text-danger" href="#" onclick="deleteProduct('<%= product._id %>')"><i class="fas fa-trash me-2"></i>Delete</a></li>
+            </ul>
+          </div>
+          <% } %>
+        </div>
+
+        <% if (product.averageRating > 0) { %>
+        <div class="stars my-2">
+          <% for(let i=1;i<=5;i++) { %><i class="fas fa-star <%= i <= product.averageRating ? '' : 'star-empty' %>"></i><% } %>
+          <span style="color:var(--text-muted);font-size:0.85rem;margin-left:6px"><%= product.averageRating %> (<%= product.numReviews %> reviews)</span>
+        </div>
+        <% } %>
+
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:var(--primary);margin:16px 0">₹<%= product.price.toLocaleString() %></div>
+
+        <div class="d-flex gap-2 flex-wrap mb-4">
+          <span style="background:var(--cream-dark);padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:500">
+            <i class="fas fa-tag me-1"></i><%= product.condition %>
+          </span>
+          <% if (product.size) { %>
+          <span style="background:var(--cream-dark);padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:500">
+            Size: <%= product.size %>
+          </span>
+          <% } %>
+          <% if (product.brand) { %>
+          <span style="background:var(--cream-dark);padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:500">
+            <i class="fas fa-trademark me-1"></i><%= product.brand %>
+          </span>
+          <% } %>
+          <span style="background:<%= product.status === 'available' ? '#d4edda' : '#f8d7da' %>;color:<%= product.status === 'available' ? '#155724' : '#842029' %>;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:600">
+            <%= product.status.charAt(0).toUpperCase() + product.status.slice(1) %>
+          </span>
+        </div>
+
+        <p style="color:var(--text-muted);line-height:1.8;margin-bottom:24px"><%= product.description %></p>
+
+        <!-- SELLER -->
+        <div style="background:var(--cream-dark);border-radius:var(--radius);padding:16px;margin-bottom:24px">
+          <div class="d-flex align-items-center gap-3">
+            <img src="<%= product.seller.avatar %>" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+            <div>
+              <div style="font-weight:600"><a href="/users/<%= product.seller._id %>" style="color:var(--text);text-decoration:none"><%= product.seller.name %></a></div>
+              <div style="font-size:0.8rem;color:var(--text-muted)">Member since <%= new Date(product.seller.joinedAt).toLocaleDateString('en-IN', {month:'short',year:'numeric'}) %></div>
+            </div>
+            <% if (user && user._id.toString() !== product.seller._id.toString()) { %>
+            <a href="/messages/<%= product.seller._id %>?product=<%= product._id %>" class="btn-outline-primary-custom ms-auto" style="padding:8px 16px;font-size:0.85rem">
+              <i class="fas fa-comment me-1"></i>Message
+            </a>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <% if (product.status === 'available' && user && user._id.toString() !== product.seller._id.toString()) { %>
+        <div class="d-flex gap-3">
+          <button class="btn-primary-custom flex-grow-1" style="font-size:1rem;padding:14px" onclick="addToCart('<%= product._id %>', this)">
+            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+          </button>
+          <button class="wishlist-btn position-static <%= inWishlist ? 'active' : '' %>"
+            style="width:50px;height:50px;border-radius:var(--radius);flex-shrink:0"
+            data-product-id="<%= product._id %>" onclick="toggleWishlist(this)">
+            <i class="fas fa-heart"></i>
+          </button>
+        </div>
+        <% } else if (!user) { %>
+        <a href="/auth/login?redirect=/products/<%= product._id %>" class="btn-primary-custom d-block text-center" style="font-size:1rem;padding:14px">
+          <i class="fas fa-sign-in-alt me-2"></i>Login to Purchase
+        </a>
+        <% } %>
+
+        <% if (product.tags && product.tags.length > 0) { %>
+        <div class="mt-3 d-flex flex-wrap gap-2">
+          <% product.tags.forEach(tag => { %>
+          <a href="/products?search=<%= tag %>" style="background:var(--cream-dark);color:var(--text-muted);padding:3px 10px;border-radius:20px;font-size:0.8rem;text-decoration:none">#<%= tag %></a>
+          <% }) %>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="row mt-5" id="reviews">
+      <div class="col-lg-8">
+        <h3 class="section-title mb-4">Reviews (<%= reviews.length %>)</h3>
+
+        <!-- ADD REVIEW -->
+        <% if (user && user._id.toString() !== product.seller._id.toString()) { %>
+        <div class="form-container mb-4">
+          <h5 style="font-weight:700;margin-bottom:16px">Write a Review</h5>
+          <form action="/products/<%= product._id %>/review" method="POST">
+            <div class="form-group">
+              <label class="form-label">Rating</label>
+              <div class="d-flex gap-2" id="starRating">
+                <% for(let i=1;i<=5;i++) { %>
+                <span onclick="setRating(<%= i %>)" style="font-size:1.8rem;cursor:pointer;color:#ddd" class="star-input" data-val="<%= i %>">★</span>
+                <% } %>
+              </div>
+              <input type="hidden" name="rating" id="ratingInput" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Comment</label>
+              <textarea name="comment" class="form-control-custom" rows="3" placeholder="Share your experience..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary-custom">Submit Review</button>
+          </form>
+        </div>
+        <% } %>
+
+        <!-- REVIEW LIST -->
+        <% reviews.forEach(review => { %>
+        <div style="background:var(--white);border-radius:var(--radius);padding:20px;margin-bottom:12px;box-shadow:var(--card-shadow)">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <img src="<%= review.user.avatar %>" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+            <div>
+              <div style="font-weight:600"><%= review.user.name %></div>
+              <div class="stars" style="font-size:0.85rem">
+                <% for(let i=1;i<=5;i++) { %><i class="fas fa-star <%= i <= review.rating ? '' : 'star-empty' %>"></i><% } %>
+              </div>
+            </div>
+            <div style="margin-left:auto;font-size:0.8rem;color:var(--text-muted)"><%= new Date(review.createdAt).toLocaleDateString() %></div>
+          </div>
+          <p style="margin:0;color:var(--text-muted);font-size:0.9rem"><%= review.comment %></p>
+        </div>
+        <% }) %>
+
+        <% if (reviews.length === 0) { %>
+        <div style="text-align:center;padding:40px;color:var(--text-muted)">
+          <i class="fas fa-star-half-alt fa-2x mb-3" style="color:var(--cream-dark)"></i>
+          <p>No reviews yet. Be the first!</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- RELATED PRODUCTS -->
+    <% if (related.length > 0) { %>
+    <div class="mt-5">
+      <h3 class="section-title mb-4">More Like This</h3>
+      <div class="products-grid">
+        <% related.forEach(p => { %><%- include('../partials/product-card', { product: p, wishlistIds: [] }) %><% }) %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+function setRating(val) {
+  document.getElementById('ratingInput').value = val;
+  document.querySelectorAll('.star-input').forEach(s => {
+    s.style.color = parseInt(s.dataset.val) <= val ? 'var(--accent)' : '#ddd';
+  });
+}
+
+function deleteProduct(id) {
+  if (confirm('Delete this product?')) {
+    fetch('/products/' + id, { method: 'DELETE' }).then(() => window.location.href = '/users/profile');
+  }
+}
+
+document.querySelectorAll('.thumb-img').forEach(img => {
+  img.addEventListener('click', function() {
+    document.querySelectorAll('.thumb-img').forEach(i => i.style.borderColor = 'transparent');
+    this.style.borderColor = 'var(--primary)';
+  });
+});
+</script>
+
+<%- include('../partials/footer') %>

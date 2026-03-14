@@ -1,0 +1,23 @@
+<%- include('../partials/header', {title: 'My Wishlist'}) %>
+
+<div class="section-padding">
+  <div class="container">
+    <h2 class="section-title mb-4">My Wishlist</h2>
+    <% if (!wishlist || wishlist.products.length === 0) { %>
+    <div style="text-align:center;padding:60px">
+      <div style="font-size:4rem">💝</div>
+      <h4 style="color:var(--text-muted);margin-top:16px">Your wishlist is empty</h4>
+      <p style="color:var(--text-muted)">Save items you love for later</p>
+      <a href="/products" class="btn-primary-custom mt-3" style="margin-top:16px">Browse Products</a>
+    </div>
+    <% } else { %>
+    <div class="products-grid">
+      <% wishlist.products.forEach(product => { %>
+        <%- include('../partials/product-card', { product, wishlistIds: [product._id.toString()] }) %>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

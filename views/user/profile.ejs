@@ -1,0 +1,92 @@
+<%- include('../partials/header', {title: 'My Profile'}) %>
+
+<div class="section-padding">
+  <div class="container">
+    <div class="row g-4">
+      <!-- PROFILE SIDEBAR -->
+      <div class="col-lg-3">
+        <div style="background:var(--white);border-radius:var(--radius-lg);padding:28px;text-align:center;box-shadow:var(--card-shadow)">
+          <img src="<%= profileUser.avatar %>" alt="" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid var(--cream-dark);margin-bottom:12px">
+          <h4 style="font-weight:700"><%= profileUser.name %></h4>
+          <p style="color:var(--text-muted);font-size:0.85rem"><%= profileUser.email %></p>
+          <% if (profileUser.bio) { %>
+          <p style="font-size:0.88rem;margin-bottom:12px"><%= profileUser.bio %></p>
+          <% } %>
+          <% if (profileUser.city) { %>
+          <p style="font-size:0.85rem;color:var(--text-muted)"><i class="fas fa-map-marker-alt me-1"></i><%= profileUser.city %></p>
+          <% } %>
+          <a href="/users/profile/edit" class="btn-outline-primary-custom d-block mt-3" style="padding:10px">Edit Profile</a>
+          <a href="/products/add" class="btn-primary-custom d-block mt-2" style="padding:10px">+ New Listing</a>
+        </div>
+
+        <div style="background:var(--white);border-radius:var(--radius-lg);padding:20px;margin-top:16px;box-shadow:var(--card-shadow)">
+          <h6 style="font-weight:700;margin-bottom:12px">Quick Stats</h6>
+          <div class="d-flex justify-content-between mb-1" style="font-size:0.88rem">
+            <span style="color:var(--text-muted)">Listings</span><strong><%= products.length %></strong>
+          </div>
+          <div class="d-flex justify-content-between mb-1" style="font-size:0.88rem">
+            <span style="color:var(--text-muted)">Orders</span><strong><%= orders.length %></strong>
+          </div>
+          <div class="d-flex justify-content-between" style="font-size:0.88rem">
+            <span style="color:var(--text-muted)">Joined</span><strong><%= new Date(profileUser.joinedAt).toLocaleDateString('en-IN', {month:'short',year:'numeric'}) %></strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="col-lg-9">
+        <!-- MY LISTINGS -->
+        <h3 class="section-title mb-3">My Listings (<%= products.length %>)</h3>
+        <% if (products.length > 0) { %>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:40px">
+          <% products.forEach(product => { %>
+          <div style="background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--card-shadow);position:relative">
+            <a href="/products/<%= product._id %>">
+              <img src="<%= product.images[0] %>" style="width:100%;height:150px;object-fit:cover">
+            </a>
+            <span style="position:absolute;top:8px;right:8px;background:<%= product.status==='available' ? '#d4edda' : '#f8d7da' %>;color:<%= product.status==='available' ? '#155724' : '#842029' %>;padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:600"><%= product.status %></span>
+            <div style="padding:12px">
+              <div style="font-weight:600;font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= product.title %></div>
+              <div style="font-family:'Playfair Display',serif;font-weight:700;color:var(--primary)">₹<%= product.price.toLocaleString() %></div>
+              <div class="d-flex gap-2 mt-2">
+                <a href="/products/<%= product._id %>/edit" style="flex:1;text-align:center;background:var(--cream-dark);color:var(--text);border-radius:6px;padding:6px;font-size:0.8rem;text-decoration:none;font-weight:600">Edit</a>
+                <button onclick="if(confirm('Delete?'))fetch('/products/<%= product._id %>',{method:'DELETE'}).then(()=>location.reload())" style="flex:1;background:#f8d7da;color:#842029;border:none;border-radius:6px;padding:6px;font-size:0.8rem;cursor:pointer;font-weight:600">Delete</button>
+              </div>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+        <% } else { %>
+        <div style="background:var(--white);border-radius:var(--radius-lg);padding:40px;text-align:center;box-shadow:var(--card-shadow);margin-bottom:40px">
+          <div style="font-size:3rem">🏷️</div>
+          <h5 style="color:var(--text-muted);margin:12px 0">No listings yet</h5>
+          <a href="/products/add" class="btn-accent">Start Selling</a>
+        </div>
+        <% } %>
+
+        <!-- RECENT ORDERS -->
+        <h3 class="section-title mb-3">Recent Orders</h3>
+        <% if (orders.length > 0) { %>
+        <% orders.forEach(order => { %>
+        <div style="background:var(--white);border-radius:var(--radius);padding:16px;margin-bottom:10px;box-shadow:var(--card-shadow);display:flex;align-items:center;gap:16px">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:0.9rem"><%= order.orderNumber %></div>
+            <div style="font-size:0.8rem;color:var(--text-muted)"><%= new Date(order.createdAt).toLocaleDateString() %> · <%= order.items.length %> item(s)</div>
+          </div>
+          <span class="status-badge status-<%= order.orderStatus %>"><%= order.orderStatus %></span>
+          <strong style="color:var(--primary)">₹<%= order.totalPrice.toLocaleString() %></strong>
+          <a href="/orders/<%= order._id %>" style="color:var(--primary);text-decoration:none;font-size:0.85rem">Details</a>
+        </div>
+        <% }) %>
+        <a href="/orders" style="color:var(--primary);font-weight:600;text-decoration:none;font-size:0.9rem">View all orders <i class="fas fa-arrow-right ms-1"></i></a>
+        <% } else { %>
+        <div style="background:var(--white);border-radius:var(--radius-lg);padding:30px;text-align:center;box-shadow:var(--card-shadow)">
+          <p style="color:var(--text-muted);margin:0">No orders yet</p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

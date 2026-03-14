@@ -1,0 +1,85 @@
+<%- include('../partials/header', {title: 'Chat with ' + otherUser.name}) %>
+
+<div style="padding:24px 0;min-height:calc(100vh - 200px)">
+  <div class="container" style="max-width:700px">
+    <div style="background:var(--primary);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:16px 20px;display:flex;align-items:center;gap:12px">
+      <a href="/messages" style="color:rgba(255,255,255,0.7);text-decoration:none"><i class="fas fa-arrow-left"></i></a>
+      <img src="<%= otherUser.avatar %>" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
+      <div>
+        <div style="font-weight:600;color:white"><%= otherUser.name %></div>
+        <% if (product) { %><div style="font-size:0.78rem;color:rgba(255,255,255,0.7)">re: <%= product.title %></div><% } %>
+      </div>
+      <a href="/users/<%= otherUser._id %>" style="color:rgba(255,255,255,0.7);text-decoration:none;margin-left:auto;font-size:0.85rem">View Profile</a>
+    </div>
+
+    <div class="chat-container" style="border-radius:0 0 var(--radius-lg) var(--radius-lg)">
+      <div class="chat-messages" id="chatMessages">
+        <% if (messages.length === 0) { %>
+        <div style="text-align:center;color:var(--text-muted);margin:auto;font-size:0.9rem">Start the conversation! 👋</div>
+        <% } %>
+        <% messages.forEach(msg => { %>
+        <div>
+          <div class="message-bubble <%= msg.sender._id.toString() === user._id.toString() ? 'sent' : 'received' %>">
+            <%= msg.content %>
+            <div class="message-time"><%= new Date(msg.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) %></div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+
+      <div class="chat-input-area">
+        <input type="text" class="chat-input" id="msgInput" placeholder="Type a message..." autocomplete="off">
+        <button onclick="sendMessage()" class="btn-primary-custom" style="padding:10px 20px;border-radius:20px">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const conversationId = '<%= conversationId %>';
+const otherUserId = '<%= otherUser._id %>';
+const currentUserId = '<%= user._id %>';
+const productId = '<% if (product) { %><%= product._id %><% } %>';
+
+socket.emit('join-conversation', conversationId);
+
+socket.on('new-message', (data) => {
+  if (data.sender._id !== currentUserId) appendMessage(data, false);
+});
+
+const messages = document.getElementById('chatMessages');
+messages.scrollTop = messages.scrollHeight;
+
+document.getElementById('msgInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = '';
+
+  const r = await fetch('/messages/' + otherUserId + '/send', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ content, productId })
+  });
+  const d = await r.json();
+  if (d.success) {
+    appendMessage(d.message, true);
+    socket.emit('send-message', { conversationId, ...d.message, sender: { _id: currentUserId } });
+  }
+}
+
+function appendMessage(msg, isMine) {
+  const div = document.createElement('div');
+  const time = new Date(msg.createdAt || Date.now()).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML = `<div class="message-bubble ${isMine ? 'sent' : 'received'}">${msg.content}<div class="message-time">${time}</div></div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+</script>
+
+<%- include('../partials/footer') %>

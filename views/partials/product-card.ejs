@@ -1,0 +1,41 @@
+<div class="product-card animate-in">
+  <div class="product-card-img">
+    <a href="/products/<%= product._id %>">
+      <img src="<%= product.images[0] || '/images/placeholder.jpg' %>" alt="<%= product.title %>" loading="lazy">
+    </a>
+    <% if (product.isFeatured) { %><span class="product-badge">Featured</span><% } %>
+    <% if (product.status === 'sold') { %><span class="product-badge sold">Sold</span><% } %>
+    <% if (typeof wishlistIds !== 'undefined') { %>
+    <button class="wishlist-btn <%= wishlistIds.includes(product._id.toString()) ? 'active' : '' %>"
+      data-product-id="<%= product._id %>" onclick="toggleWishlist(this)" title="Add to Wishlist">
+      <i class="fas fa-heart"></i>
+    </button>
+    <% } %>
+  </div>
+  <div class="product-card-body">
+    <a href="/products/<%= product._id %>" class="product-title d-block"><%= product.title %></a>
+    <div class="product-seller">
+      by <a href="/users/<%= product.seller._id %>" style="color:var(--primary);text-decoration:none;font-weight:500"><%= product.seller.name %></a>
+      <% if (product.category) { %>· <span><%= product.category.name %></span><% } %>
+    </div>
+    <% if (product.averageRating > 0) { %>
+    <div class="stars mb-1">
+      <% for(let i=1;i<=5;i++) { %><i class="fas fa-star <%= i <= product.averageRating ? '' : 'star-empty' %>"></i><% } %>
+      <span style="font-size:0.78rem;color:var(--text-muted)">(<%= product.numReviews %>)</span>
+    </div>
+    <% } %>
+    <div class="product-footer">
+      <div>
+        <div class="product-price">₹<%= product.price.toLocaleString() %></div>
+        <span class="product-condition"><%= product.condition %></span>
+      </div>
+      <% if (product.status === 'available') { %>
+      <button class="btn-add-cart" onclick="addToCart('<%= product._id %>', this)">
+        <i class="fas fa-cart-plus me-1"></i>Add
+      </button>
+      <% } else { %>
+      <button class="btn-add-cart" disabled>Sold</button>
+      <% } %>
+    </div>
+  </div>
+</div>
